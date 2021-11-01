@@ -11,9 +11,10 @@ def arg_check(argv):
     if len(argv) == 0:
         print('It looks like no argument/options were passed')
     try:
-        opts, args = getopt.getopt(argv, "hi:o:",["ifile=","ofile="])
+        opts, args = getopt.getopt(argv, "hi:o:e:",["ifile=","ofile=","excmd="])
     except getopt.GetoptError:
-        print('test.py -i <inputfile> -o <outputfile>')
+        print('Format the arguments as follows:')
+        print('test.py -i <inputfile> -o <outputfile> -e <extracommand>')
         sys.exit(1)
     for opt, arg in opts:
         print('Option: ' + opt)

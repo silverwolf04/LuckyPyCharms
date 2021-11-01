@@ -8,6 +8,8 @@ import sys
 
 
 def arg_check(argv):
+    if len(argv) == 0:
+        print('It looks like no argument/options were passed')
     try:
         opts, args = getopt.getopt(argv, "hi:o:",["ifile=","ofile="])
     except getopt.GetoptError:

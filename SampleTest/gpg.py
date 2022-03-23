@@ -13,14 +13,15 @@ def output(param):
         with open(file, 'a') as f:
             print(param, file=f)
 
+
 def list_help():
-    print('test.py -u <user> -a <age> -f <fullname> -m <message>')
+    print('test.py -u <user> -a <action> -f <fullname> -m <message>')
 
 
 def arg_check(argv):
     try:
-        opts, args = getopt.getopt(argv, "hu:a:f:m:",["user=","age=","fullname=","message="])
-        global user, age, fullname, message
+        opts, args = getopt.getopt(argv, "hu:a:f:m:",["user=","action=","fullname=","message="])
+        global action, age, fullname, message
     except getopt.GetoptError:
         list_help()
         sys.exit(1)
@@ -29,13 +30,20 @@ def arg_check(argv):
             list_help()
             exit()
         elif opt in ("-a", "--action"):
-            user = arg
+            action = arg
         elif opt in ("-x", "--xage"):
             age = arg
         elif opt in ("-f", "--fullname"):
             fullname = arg
         elif opt in ("-m", "--message"):
             message = arg
+
+
+def execute_action(act):
+    if act == 'list':
+        gpg.list_keys()
+    elif act == '':
+        print('test')
 
 
 action = None
@@ -47,19 +55,22 @@ err = 0
 
 if action is None:
     try:
-        output('Action:' + sys.argv[1])
+        output('Param action:' + sys.argv[1])
     except IndexError:
-        print('action is undefined')
+        output('action is undefined')
         err = 1
 else:
-    output('User: ' + user)
+    output('Defined action: ' + action)
 
 exit(err)
 
 gpg=gnupg.GPG(verbose=False)
 gpg = gnupg.GPG()
 gpg.encoding = 'utf-8'
-gpg.list_keys()
+
+
+execute_action(action)
+
 
 """
 # create a signature key

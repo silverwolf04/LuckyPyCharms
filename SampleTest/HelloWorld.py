@@ -7,7 +7,7 @@ def output(param):
     if file is None:
         print(param)
     else:
-        with open(file, 'w') as f:
+        with open(file, 'a') as f:
             print(param, file=f)
 
 
@@ -45,38 +45,38 @@ err = 0
 
 if user is None:
     try:
-        output(sys.argv[2])
+        output('User:' + sys.argv[1])
     except IndexError:
         print('user is undefined')
         err = 1
 else:
-    output(user)
+    output('User: ' + user)
 
 if age is None:
     try:
-        output(sys.argv[3])
+        output('Age: ' + sys.argv[2])
     except IndexError:
         print('age is undefined')
         err = 1
 else:
-    output(age)
+    output('Age: ' + age)
 
 if fullname is None:
     try:
-        output(sys.argv[4])
+        output('Full Name: ' + sys.argv[3])
     except IndexError:
         print('fullname is undefined')
         err = 1
 else:
-    output(fullname)
+    output('Full Name: ' + fullname)
 
 if message is None:
     try:
-        output(sys.argv[5])
+        output('Message: ' + sys.argv[4])
     except IndexError:
         print('message is undefined')
         err = 1
 else:
-    output(message)
+    output('Message: ' + message)
 
 sys.exit(err)

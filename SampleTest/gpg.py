@@ -17,12 +17,14 @@ def output(param):
 def list_help():
     output('gpg.py --action=list')
     output('gpg.py --action=import --inputfile=publickey')
+    output('gpg.py --action=encrypt --recipient=RecipientNameInKeyRing --inputfile=file --outputfile=file')
+    output('NOTE: for encrypt --outputfile is optional; will append .pgp to --inputfile name if left blank)')
 
 
 def arg_check(argv):
     try:
-        opts, args = getopt.getopt(argv, "hu:a:i:m:",["user=","action=","inputfile=","message="])
-        global action, age, inputfile, message
+        opts, args = getopt.getopt(argv, "hr:a:i:m:",["recipient=","action=","inputfile=","outputfile="])
+        global recipient, action, input_file, output_file
     except getopt.GetoptError:
         list_help()
         sys.exit(1)
@@ -30,14 +32,14 @@ def arg_check(argv):
         if opt in ('-h', '--help'):
             list_help()
             exit()
+        elif opt in ("-r", "--recipient"):
+            age = arg
         elif opt in ("-a", "--action"):
             action = arg
-        elif opt in ("-x", "--xage"):
-            age = arg
         elif opt in ("-i", "--inputfile"):
-            inputfile = arg
-        elif opt in ("-m", "--message"):
-            message = arg
+            input_file = arg
+        elif opt in ("-o", "--outputfile"):
+            output_file = arg
 
 
 def execute_action(act):
@@ -64,7 +66,7 @@ def execute_action(act):
     elif act == 'import':
         try:
             # import a key and set ultimate trust level
-            import_key_file = inputfile
+            import_key_file = input_file
             key_data = open(import_key_file).read()
             import_result = gpg.import_keys(key_data)
             output('Importing key with fingerprint:' + str(import_result.fingerprints))
@@ -75,16 +77,38 @@ def execute_action(act):
                 output('******************')
                 for key, value in entry.items():
                     if key == 'fingerprint':
-                            output(value)
+                        output(value)
+            return 0
         except Exception:
             output('An error occurred')
             return 1
+    elif act == 'encrypt':
+        try:
+            output('encrypt file')
+            # encrypt the file
+            if output_file is None:
+                o_file = input_file + '.pgp'
+            else:
+                o_file = output_file
+            with open(input_file, 'rb') as f:
+                status = gpg.encrypt_file(f, recipients=['PKP_Integrations_Mines1'], output=o_file)
+
+            print(status.ok)
+            print(status.stderr)
+            return 0
+        except Exception:
+            output('An error occurred')
+            return 1
+    else:
+        output('Unknown action specified')
+        list_help()
+        return 1
 
 
+recipient = None
 action = None
-age = None
-inputfile = None
-message = None
+input_file = None
+output_file = None
 arg_check(sys.argv[1:])
 err = 0
 
@@ -105,6 +129,7 @@ gpg.encoding = 'utf-8'
 
 ret = execute_action(action)
 
+output('Return Code:' + str(ret))
 sys.exit(ret)
 
 """
@@ -123,16 +148,6 @@ print(key)
 """
 
 
-"""
-# encrypt the file
-path = 'c:/users/dcover/downloads/misc/'
-enc_file = "test"
-with open(path + test, 'rb') as f:
-    status = gpg.encrypt_file(f, recipients = ['PKP_Integrations_Mines1'], output = path + test + '.pgp')
-
-print(status.ok)
-print(status.stderr)
-"""
 
 # decrypt the file
 path = "c:/users/dcover/downloads/misc/"

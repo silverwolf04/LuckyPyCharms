@@ -15,13 +15,14 @@ def output(param):
 
 
 def list_help():
-    print('test.py -u <user> -a <action> -f <fullname> -m <message>')
+    output('gpg.py --action=list')
+    output('gpg.py --action=import --inputfile=publickey')
 
 
 def arg_check(argv):
     try:
-        opts, args = getopt.getopt(argv, "hu:a:f:m:",["user=","action=","fullname=","message="])
-        global action, age, fullname, message
+        opts, args = getopt.getopt(argv, "hu:a:i:m:",["user=","action=","inputfile=","message="])
+        global action, age, inputfile, message
     except getopt.GetoptError:
         list_help()
         sys.exit(1)
@@ -33,8 +34,8 @@ def arg_check(argv):
             action = arg
         elif opt in ("-x", "--xage"):
             age = arg
-        elif opt in ("-f", "--fullname"):
-            fullname = arg
+        elif opt in ("-i", "--inputfile"):
+            inputfile = arg
         elif opt in ("-m", "--message"):
             message = arg
 
@@ -42,28 +43,47 @@ def arg_check(argv):
 def execute_action(act):
     if act == 'list':
         output('Running ''list'' action')
-        pub_keys = gpg.list_keys()
-        i = 0
-        while i < len(pub_keys):
-            output('********************')
-            val = pub_keys[i]['uids']
-            output('Recipient: ' + str(val))
-            val = pub_keys[i]['trust']
-            output('Trust Level: ' + val)
-            val = pub_keys[i]['length']
-            output('Strength: ' + val)
-            val = pub_keys[i]['keyid']
-            output('KeyID: ' + val)
-            val = pub_keys[i]['fingerprint']
-            output('Fingerprint: ' + val)
-            i = i + 1
-    elif act == '':
-        print('test')
+        try:
+            pub_keys = gpg.list_keys()
+            i = 0
+            while i < len(pub_keys):
+                output('********************')
+                val = pub_keys[i]['uids']
+                output('Recipient: ' + str(val))
+                val = pub_keys[i]['trust']
+                output('Trust Level: ' + val)
+                val = pub_keys[i]['length']
+                output('Strength: ' + val)
+                val = pub_keys[i]['keyid']
+                output('KeyID: ' + val)
+                val = pub_keys[i]['fingerprint']
+                output('Fingerprint: ' + val)
+                i = i + 1
+        except Exception:
+            return 1
+    elif act == 'import':
+        try:
+            # import a key and set ultimate trust level
+            import_key_file = inputfile
+            key_data = open(import_key_file).read()
+            import_result = gpg.import_keys(key_data)
+            output('Importing key with fingerprint:' + str(import_result.fingerprints))
+            gpg.trust_keys(import_result.fingerprints, 'TRUST_ULTIMATE')
+            my_key = gpg.list_keys()
+            output('Fingerprints found in GPG keyring')
+            for entry in my_key:
+                output('******************')
+                for key, value in entry.items():
+                    if key == 'fingerprint':
+                            output(value)
+        except Exception:
+            output('An error occurred')
+            return 1
 
 
 action = None
 age = None
-fullname = None
+inputfile = None
 message = None
 arg_check(sys.argv[1:])
 err = 0
@@ -83,10 +103,9 @@ gpg=gnupg.GPG(verbose=False)
 gpg = gnupg.GPG()
 gpg.encoding = 'utf-8'
 
+ret = execute_action(action)
 
-execute_action(action)
-
-sys.exit(0)
+sys.exit(ret)
 
 """
 # create a signature key
@@ -103,17 +122,6 @@ key = gpg.gen_key(input_data)
 print(key)
 """
 
-"""
-# import a key and set ultimate trust level
-import_key_file = "C:/pvm-gitccit/workday/9Workday/GPG/MinesWorkday_0x32F8E37C_SECRET.asc"
-# import_key_file = "C:/pvm-gitccit/workday/9Workday/GPG/MinesWorkday_0x32F8E37C_public.asc"
-# import_key_file = 'c:/users/dcover/downloads/misc/pgp_public_mines1.pub'
-key_data = open(import_key_file).read()
-import_result = gpg.import_keys(key_data)
-gpg.trust_keys(import_result.fingerprints, 'TRUST_ULTIMATE')
-mykeys = gpg.list_keys()
-print(mykeys)
-"""
 
 """
 # encrypt the file

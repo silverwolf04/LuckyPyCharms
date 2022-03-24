@@ -41,7 +41,22 @@ def arg_check(argv):
 
 def execute_action(act):
     if act == 'list':
-        gpg.list_keys()
+        output('Running ''list'' action')
+        pub_keys = gpg.list_keys()
+        i = 0
+        while i < len(pub_keys):
+            output('********************')
+            val = pub_keys[i]['uids']
+            output('Recipient: ' + str(val))
+            val = pub_keys[i]['trust']
+            output('Trust Level: ' + val)
+            val = pub_keys[i]['length']
+            output('Strength: ' + val)
+            val = pub_keys[i]['keyid']
+            output('KeyID: ' + val)
+            val = pub_keys[i]['fingerprint']
+            output('Fingerprint: ' + val)
+            i = i + 1
     elif act == '':
         print('test')
 
@@ -62,7 +77,7 @@ if action is None:
 else:
     output('Defined action: ' + action)
 
-exit(err)
+#exit(err)
 
 gpg=gnupg.GPG(verbose=False)
 gpg = gnupg.GPG()
@@ -71,6 +86,7 @@ gpg.encoding = 'utf-8'
 
 execute_action(action)
 
+sys.exit(0)
 
 """
 # create a signature key

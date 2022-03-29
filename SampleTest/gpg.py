@@ -18,12 +18,14 @@ def list_help():
     output('gpg.py --action=list')
     output('gpg.py --action=import --inputfile=publickey')
     output('gpg.py --action=encrypt --recipient=RecipientNameInKeyRing --inputfile=file --outputfile=file')
-    output('NOTE: for encrypt --outputfile is optional; will append .pgp to --inputfile name if left blank)')
+    output('NOTE: for encrypt --outputfile is optional; will append .pgp to --inputfile name if left blank')
+    output('gpg.py --action=decrypt --inputfile=file --outputfile=file')
+    output('NOTE: for decrypt --outputfile is optional; will strip ending extension from --inputfile name if left blank')
 
 
 def arg_check(argv):
     try:
-        opts, args = getopt.getopt(argv, "hr:a:i:m:",["recipient=","action=","inputfile=","outputfile="])
+        opts, args = getopt.getopt(argv, "hr:a:i:o",["recipient=","action=","inputfile=","outputfile="])
         global recipient, action, input_file, output_file
     except getopt.GetoptError:
         list_help()
@@ -33,7 +35,7 @@ def arg_check(argv):
             list_help()
             exit()
         elif opt in ("-r", "--recipient"):
-            age = arg
+            recipient = arg
         elif opt in ("-a", "--action"):
             action = arg
         elif opt in ("-i", "--inputfile"):
@@ -42,9 +44,16 @@ def arg_check(argv):
             output_file = arg
 
 
+def error_out(inst):
+    output('An error occurred:')
+    output(type(inst))
+    output(inst.args)
+    output(inst)
+
+
 def execute_action(act):
     if act == 'list':
-        output('Running ''list'' action')
+        output("Running 'list' action")
         try:
             pub_keys = gpg.list_keys()
             i = 0
@@ -61,7 +70,8 @@ def execute_action(act):
                 val = pub_keys[i]['fingerprint']
                 output('Fingerprint: ' + val)
                 i = i + 1
-        except Exception:
+        except Exception as inst:
+            error_out(inst)
             return 1
     elif act == 'import':
         try:
@@ -79,25 +89,51 @@ def execute_action(act):
                     if key == 'fingerprint':
                         output(value)
             return 0
-        except Exception:
-            output('An error occurred')
+        except Exception as inst:
+            error_out(inst)
             return 1
     elif act == 'encrypt':
         try:
-            output('encrypt file')
             # encrypt the file
-            if output_file is None:
+            output('encrypt file')
+            output('input_file: ' + input_file) 
+
+            if not output_file:
                 o_file = input_file + '.pgp'
             else:
                 o_file = output_file
-            with open(input_file, 'rb') as f:
-                status = gpg.encrypt_file(f, recipients=['PKP_Integrations_Mines1'], output=o_file)
 
-            print(status.ok)
-            print(status.stderr)
+            output('output_file: ' + o_file)
+            output('Recipient: ' + recipient)
+            with open(input_file, 'rb') as f:
+                status = gpg.encrypt_file(f, recipients=[recipient], output=o_file)
+
+            output(status.ok)
+            output(status.stderr)
             return 0
-        except Exception:
-            output('An error occurred')
+        except Exception as inst:
+            error_out(inst)
+            return 1
+    elif act == 'decrypt':
+        try:
+            # decrypt the file
+            output('decrypt file')
+            output('input_file: ' + input_file)
+
+            if not output_file:
+                o_file = input_file.rsplit(".", 1)[0]
+            else:
+                o_file = output_file
+
+            output('output_file: ' + o_file)
+
+            with open(input_file, 'rb') as f:
+                status = gpg.decrypt_file(f, output = o_file)
+
+            output(status.ok)
+            output(status.stderr)
+        except Exception as inst:
+            error_out(inst)
             return 1
     else:
         output('Unknown action specified')
@@ -121,8 +157,6 @@ if action is None:
 else:
     output('Defined action: ' + action)
 
-#exit(err)
-
 gpg=gnupg.GPG(verbose=False)
 gpg = gnupg.GPG()
 gpg.encoding = 'utf-8'
@@ -144,21 +178,5 @@ input_data = gpg.gen_key_input(
 )
 
 key = gpg.gen_key(input_data)
-print(key)
+output(key)
 """
-
-
-
-# decrypt the file
-path = "c:/users/dcover/downloads/misc/"
-infile = 'TEST_Workday_Employee_202203161504.csv.pgp'
-outfile = infile.rsplit(".", 1)[0]
-
-print('infile: ' + path + infile)
-print('outfile: ' + path + outfile)
-
-with open(path + infile, 'rb') as f:
-    status = gpg.decrypt_file(f, output = path + outfile)
-
-print(status.ok)
-print(status.stderr)

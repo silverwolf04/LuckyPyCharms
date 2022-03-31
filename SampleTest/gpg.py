@@ -138,6 +138,7 @@ def execute_action(act):
 
             output(status.ok)
             output(status.stderr)
+            return 0
         except Exception as inst:
             error_out(inst)
             return 1

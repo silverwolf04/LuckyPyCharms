@@ -168,6 +168,7 @@ recipient = None
 action = None
 input_file = None
 output_file = None
+o_file = None
 arg_check(sys.argv[1:])
 err = 0
 
@@ -187,14 +188,18 @@ gpg.encoding = 'utf-8'
 ret = execute_action(action)
 
 if ret == 0:
-    if file is not None:
-        if output_file is not None:
+    if file:
+        if o_file:
             try:
-                shutil.copyfile(output_file, file, *, follow_symlinks=True)
-                output(output_file + ' was copied to ' + file + ' for GUI viewing')
+                shutil.copyfile(o_file, file)
+                output(o_file + ' was copied to ' + file + ' for GUI viewing')
             except Exception as ex_err:
                 output('Unable to copy file for GUI viewing')
                 error_out(ex_err)
+        else:
+            output('no o_file specified; no copy occurred')
+    else:
+        output('file not specified; no copy occurred')
 
 output('Return Code:' + str(ret))
 sys.exit(ret)

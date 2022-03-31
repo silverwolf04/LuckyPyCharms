@@ -1,17 +1,23 @@
-import gnupg, getopt, sys, os
+import gnupg, getopt, sys, os, shutil
 
 # OpenPGP => GnuPG => PGP
 # All the same thing, just licensed differently and maintained by different groups
 
 file = os.environ.get('file')
 
-
+# no longer redirecting output to file; instead copy output_file to file
+"""
 def output(param):
     if file is None:
         print(param)
     else:
         with open(file, 'a') as f:
             print(param, file=f)
+"""
+
+
+def output(param):
+    print(param)
 
 
 def list_help():
@@ -141,6 +147,23 @@ def execute_action(act):
         return 1
 
 
+"""
+# keeping this code in case there is a use for it in the future
+# create a signature key
+
+gpg.encoding = 'utf-8'
+input_data = gpg.gen_key_input(
+    name_email = 'dcover@mines.edu',
+    passphrase = 'test123',
+    key_type = 'RSA',
+    key_length = 4096
+)
+
+key = gpg.gen_key(input_data)
+output(key)
+"""
+
+
 recipient = None
 action = None
 input_file = None
@@ -163,20 +186,15 @@ gpg.encoding = 'utf-8'
 
 ret = execute_action(action)
 
+if ret == 0:
+    if file is not None:
+        if output_file is not None:
+            try:
+                shutil.copyfile(output_file, file, *, follow_symlinks=True)
+                output(output_file + ' was copied to ' + file + ' for GUI viewing')
+            except Exception as ex_err:
+                output('Unable to copy file for GUI viewing')
+                error_out(ex_err)
+
 output('Return Code:' + str(ret))
 sys.exit(ret)
-
-"""
-# create a signature key
-
-gpg.encoding = 'utf-8'
-input_data = gpg.gen_key_input(
-    name_email = 'dcover@mines.edu',
-    passphrase = 'test123',
-    key_type = 'RSA',
-    key_length = 4096
-)
-
-key = gpg.gen_key(input_data)
-output(key)
-"""

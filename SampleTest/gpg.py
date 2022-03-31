@@ -58,6 +58,7 @@ def error_out(inst):
 
 
 def execute_action(act):
+    global o_file
     if act == 'list':
         output("Running 'list' action")
         try:

@@ -1,9 +1,15 @@
 import random
 from collections import OrderedDict
 
-rl = [1,2,3,4]
 nl = ["Derek", "Ric", "Connie", "Wan"]
 per_dict = OrderedDict()
+
+rl = []
+i = 1
+
+while i <= len(nl):
+    rl.append(i)
+    i = i + 1
 
 while len(nl) > 0:
     val = random.choice(rl)
